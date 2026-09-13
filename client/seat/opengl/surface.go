@@ -22,7 +22,9 @@ func (win *Window) NewSurface(sz image.Point, filter bool) seat.Surface {
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 	}
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(s.sz.X), int32(s.sz.Y), 0, gl.BGRA, gl.UNSIGNED_SHORT_1_5_5_5_REV, nil)
+	// Sized internal format matching the source pixels, so that uploads do not have
+	// to be converted to RGBA8 by the driver.
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB5_A1, int32(s.sz.X), int32(s.sz.Y), 0, gl.BGRA, gl.UNSIGNED_SHORT_1_5_5_5_REV, nil)
 	return s
 }
 
@@ -41,7 +43,7 @@ func (s *Surface) Update(img *noximage.Image16) {
 		panic("invalid image size")
 	}
 	gl.BindTexture(gl.TEXTURE_2D, s.tex)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(s.sz.X), int32(s.sz.Y), 0, gl.BGRA, gl.UNSIGNED_SHORT_1_5_5_5_REV, gl.Ptr(img.Pix))
+	gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, int32(s.sz.X), int32(s.sz.Y), gl.BGRA, gl.UNSIGNED_SHORT_1_5_5_5_REV, gl.Ptr(img.Pix))
 }
 
 func (s *Surface) Size() image.Point {
