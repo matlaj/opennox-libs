@@ -225,9 +225,25 @@ func (win *Window) OnScreenResize(fnc func(sz image.Point)) {
 
 func (win *Window) initGL() error {
 	win.win.MakeContextCurrent()
-	glfw.SwapInterval(0)
+	if err := win.SetVSync(false); err != nil {
+		win.log.Warn("cannot set swap interval", "err", err)
+	}
 	if err := win.gl.Init(win.log); err != nil {
 		return err
+	}
+	return nil
+}
+
+// SetVSync enables or disables synchronization of buffer swaps with the display
+// refresh. With it disabled, frames are presented the moment they are drawn and land
+// at arbitrary points in the refresh cycle, which reads as judder even when the frame
+// rate is perfectly stable.
+func (win *Window) SetVSync(enable bool) error {
+	win.win.MakeContextCurrent()
+	if enable {
+		glfw.SwapInterval(1)
+	} else {
+		glfw.SwapInterval(0)
 	}
 	return nil
 }

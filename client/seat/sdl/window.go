@@ -224,11 +224,32 @@ func (win *Window) initGL() error {
 	if err != nil {
 		return fmt.Errorf("OpenGL bind failed: %w", err)
 	}
-	sdl.GLSetSwapInterval(0)
+	if err := win.SetVSync(false); err != nil {
+		win.log.Warn("cannot set swap interval", "err", err)
+	}
 	if err := win.gl.Init(win.log); err != nil {
 		return err
 	}
 	return nil
+}
+
+// SetVSync enables or disables synchronization of buffer swaps with the display
+// refresh. With it disabled, frames are presented the moment they are drawn and land
+// at arbitrary points in the refresh cycle, which reads as judder even when the frame
+// rate is perfectly stable.
+//
+// Enabling prefers late swap tearing, also known as adaptive vsync: it synchronizes
+// normally, but lets a frame that missed its deadline through immediately instead of
+// holding it for another full refresh. That avoids dropping to half the refresh rate
+// after a single slow frame. Drivers that do not support it fall back to plain vsync.
+func (win *Window) SetVSync(enable bool) error {
+	if !enable {
+		return sdl.GLSetSwapInterval(0)
+	}
+	if err := sdl.GLSetSwapInterval(-1); err == nil {
+		return nil
+	}
+	return sdl.GLSetSwapInterval(1)
 }
 
 func (win *Window) Present() {

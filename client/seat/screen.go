@@ -36,6 +36,9 @@ type Screen interface {
 	OnScreenResize(fnc func(sz image.Point))
 	// NewSurface creates a new screen surface.
 	NewSurface(sz image.Point, filter bool) Surface
+	// SetVSync enables or disables synchronization of buffer swaps with the display
+	// refresh rate.
+	SetVSync(enable bool) error
 	// Clear the screen.
 	Clear()
 	// Present the current buffer to the screen.
